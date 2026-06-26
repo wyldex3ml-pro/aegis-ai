@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AegisAI — Autonomous Incident Commander</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .header h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: #58a6ff;
+      letter-spacing: -0.5px;
+    }
+    .header p {
+      color: #8b949e;
+      margin-top: 8px;
+      font-size: 1rem;
+    }
+    .badge {
+      display: inline-block;
+      background: #1f2937;
+      border: 1px solid #30363d;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      color: #58a6ff;
+      margin: 4px;
+    }
+
+    /* Card */
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .card h2 {
+      font-size: 1rem;
+      color: #8b949e;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Form */
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: #8b949e;
+      margin-bottom: 6px;
+      margin-top: 16px;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #e6edf3;
+      padding: 12px;
+      font-size: 0.9rem;
+      font-family: 'Consolas', monospace;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus, textarea:focus {
+      border-color: #58a6ff;
+    }
+    textarea {
+      min-height: 140px;
+      resize: vertical;
+    }
+
+    /* Button */
+    .btn {
+      display: block;
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      background: #238636;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #2ea043; }
+    .btn:disabled { background: #21262d; color: #484f58; cursor: not-allowed; }
+
+    /* Agent pipeline */
+    .pipeline {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .agent-step {
+      flex: 1;
+      min-width: 120px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #484f58;
+      transition: all 0.3s;
+    }
+    .agent-step .icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+    .agent-step.active  { border-color: #d29922; color: #d29922; background: #1c1a10; }
+    .agent-step.done    { border-color: #238636; color: #3fb950; background: #0d1f12; }
+    .agent-step.failed  { border-color: #da3633; color: #f85149; background: #1f0d0d; }
+
+    /* Status badge */
+    .status-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+    .status-fixed  { background: #0d1f12; color: #3fb950; border: 1px solid #238636; }
+    .status-failed { background: #1f0d0d; color: #f85149; border: 1px solid #da3633; }
+    .status-running{ background: #1c1a10; color: #d29922; border: 1px solid #d29922; }
+
+    /* Code block */
+    pre {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      font-family: 'Consolas', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #e6edf3;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Retries */
+    .meta {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .meta-item {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      color: #8b949e;
+    }
+    .meta-item span { color: #e6edf3; font-weight: 600; }
+
+    /* Hidden */
+    .hidden { display: none; }
+
+    /* Loader */
+    .loader {
+      text-align: center;
+      padding: 20px;
+      color: #8b949e;
+      font-size: 0.9rem;
+    }
+    .loader::after {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #30363d;
+      border-top-color: #58a6ff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Examples */
+    .example-btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #8b949e;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin: 4px;
+      transition: all 0.2s;
+    }
+    .example-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>⚡ AegisAI</h1>
+    <p>Autonomous Enterprise Incident Commander</p>
+    <div style="margin-top:12px">
+      <span class="badge">LangGraph</span>
+      <span class="badge">Groq Llama 3.3</span>
+      <span class="badge">Qdrant RAG</span>
+      <span class="badge">Self-Healing</span>
+    </div>
+  </div>
+
+  <!-- Input Card -->
+  <div class="card">
+    <h2>🚨 New Incident</h2>
+
+    <label>Quick Examples</label>
+    <div>
+      <button class="example-btn" onclick="loadExample('nulltype')">NoneType Error</button>
+      <button class="example-btn" onclick="loadExample('keyerror')">KeyError</button>
+      <button class="example-btn" onclick="loadExample('recursion')">RecursionError</button>
+    </div>
+
+    <label>Repository URL</label>
+    <input type="text" id="repo_url"
+           value="https://github.com/demo-org/payment-service"
+           placeholder="https://github.com/your-org/your-repo"/>
+
+    <label>Error Log / Stack Trace</label>
+    <textarea id="error_log"
+              placeholder="Paste your Python error or stack trace here..."></textarea>
+
+    <button class="btn" id="runBtn" onclick="runAegis()">
+      ⚡ Run AegisAI
+    </button>
+  </div>
+
+  <!-- Results Card (hidden until run) -->
+  <div class="card hidden" id="resultsCard">
+    <h2>📊 Results</h2>
+
+    <!-- Agent Pipeline Visualization -->
+    <div class="pipeline">
+      <div class="agent-step" id="step-triage">
+        <span class="icon">🔍</span>Triage Agent
+      </div>
+      <div class="agent-step" id="step-coder">
+        <span class="icon">💻</span>Coder Agent
+      </div>
+      <div class="agent-step" id="step-tester">
+        <span class="icon">🧪</span>Tester Agent
+      </div>
+      <div class="agent-step" id="step-router">
+        <span class="icon">🔁</span>Router
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loader hidden" id="loader">Running AegisAI agents</div>
+
+    <!-- Output (hidden until done) -->
+    <div class="hidden" id="output">
+      <div id="statusBadge"></div>
+
+      <div class="meta">
+        <div class="meta-item">Status: <span id="metaStatus">—</span></div>
+        <div class="meta-item">Retries used: <span id="metaRetries">—</span></div>
+        <div class="meta-item">Patches tried: <span id="metaPatches">—</span></div>
+      </div>
+
+      <label style="margin-top:0">Generated Patch</label>
+      <pre id="patchOutput"></pre>
+
+      <label>Sandbox Output</label>
+      <pre id="testOutput"></pre>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  const examples = {
+    nulltype: {
+      repo: "https://github.com/demo-org/payment-service",
+      error: "AttributeError: 'NoneType' object has no attribute 'total'\n  File 'payment/processor.py', line 42, in process_payment\n    result = cart.total()"
+    },
+    keyerror: {
+      repo: "https://github.com/demo-org/auth-service",
+      error: "KeyError: 'user_id'\n  File 'api/auth.py', line 88, in validate_token\n    user = request.session['user_id']"
+    },
+    recursion: {
+      repo: "https://github.com/demo-org/data-pipeline",
+      error: "RecursionError: maximum recursion depth exceeded\n  File 'utils/tree.py', line 23, in flatten_tree\n    return flatten_tree(node.children)"
+    }
+  };
+
+  function loadExample(key) {
+    document.getElementById('repo_url').value   = examples[key].repo;
+    document.getElementById('error_log').value  = examples[key].error;
+  }
+
+  function setStep(stepId, state) {
+    const el = document.getElementById('step-' + stepId);
+    el.className = 'agent-step ' + state;
+  }
+
+  async function runAegis() {
+    const repo_url  = document.getElementById('repo_url').value.trim();
+    const error_log = document.getElementById('error_log').value.trim();
+
+    if (!error_log) {
+      alert('Please paste an error log first.');
+      return;
+    }
+
+    // Reset UI
+    const btn = document.getElementById('runBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Running...';
+
+    document.getElementById('resultsCard').classList.remove('hidden');
+    document.getElementById('loader').classList.remove('hidden');
+    document.getElementById('output').classList.add('hidden');
+
+    ['triage','coder','tester','router'].forEach(s => setStep(s, ''));
+
+    // Animate steps
+    setTimeout(() => setStep('triage', 'active'), 300);
+    setTimeout(() => setStep('triage', 'done'),   1200);
+    setTimeout(() => setStep('coder',  'active'),  1400);
+
+    try {
+      const response = await fetch('/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repo_url, error_log })
+      });
+
+      const data = await response.json();
+
+      // Finish animation
+      setStep('coder',  'done');
+      setStep('tester', 'done');
+      setStep('router', data.status === 'fixed' ? 'done' : 'failed');
+
+      // Hide loader, show output
+      document.getElementById('loader').classList.add('hidden');
+      document.getElementById('output').classList.remove('hidden');
+
+      // Status badge
+      const badge = document.getElementById('statusBadge');
+      if (data.status === 'fixed') {
+        badge.innerHTML = '<div class="status-badge status-fixed">✅ INCIDENT RESOLVED AUTOMATICALLY</div>';
+      } else {
+        badge.innerHTML = '<div class="status-badge status-failed">❌ NEEDS HUMAN REVIEW</div>';
+      }
+
+      // Meta
+      document.getElementById('metaStatus').textContent   = data.status.toUpperCase();
+      document.getElementById('metaRetries').textContent  = `${data.retry_count} / 3`;
+      document.getElementById('metaPatches').textContent  = data.patch_history?.length || 1;
+
+      // Code
+      document.getElementById('patchOutput').textContent = data.current_patch || 'No patch generated.';
+      document.getElementById('testOutput').textContent  = data.test_results  || 'No test results.';
+
+    } catch (err) {
+      document.getElementById('loader').classList.add('hidden');
+      document.getElementById('output').classList.remove('hidden');
+      document.getElementById('statusBadge').innerHTML =
+        '<div class="status-badge status-failed">❌ Connection Error — is the server running?</div>';
+    }
+
+    btn.disabled = false;
+    btn.textContent = '⚡ Run AegisAI';
+  }
+
+  // Load default example on page load
+  loadExample('nulltype');
+</script>
+</body>
+</html>
