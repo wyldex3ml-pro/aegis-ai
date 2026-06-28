@@ -1,189 +1,349 @@
-# AegisAI — Autonomous Enterprise Incident Commander
+<div align="center">
 
-![Python](https://img.shields.io/badge/Python-3.11+-blue)
-![LangGraph](https://img.shields.io/badge/LangGraph-0.2+-green)
-![Groq](https://img.shields.io/badge/LLM-Groq%20Llama%203.3-orange)
-![Qdrant](https://img.shields.io/badge/VectorDB-Qdrant-red)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+# 🛡️ Aegis AI
+### Autonomous Enterprise Incident Commander powered by Multi-Agent AI
 
-AegisAI is a production-grade, open-source **Multi-Agent System** that autonomously detects software errors, diagnoses them using RAG (Retrieval-Augmented Generation), and automatically generates and tests code fixes — all without human intervention.
+<img src="https://img.shields.io/badge/Python-3.11-blue?style=for-the-badge&logo=python"/>
+<img src="https://img.shields.io/badge/LangGraph-Agentic%20AI-success?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/RAG-Enabled-orange?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/Groq-Llama%203.3%2070B-red?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/Status-Live-success?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge"/>
 
----
+### 🚀 AI-powered autonomous incident response platform using Multi-Agent Systems, Retrieval-Augmented Generation (RAG), and Large Language Models.
 
-## 🎥 Demo
+### 🌐 Live Demo
+https://aegis-ai-cr2u.onrender.com
 
-```
-🔍 Triage Agent    → Fetches similar past incidents from Qdrant vector DB
-💻 Coder Agent     → Calls Groq LLaMA 3.3 70B to generate a Python fix
-🧪 Tester Agent    → Executes the patch in a secure sandbox
-🔁 Self-Healing    → Retries up to 3 times if the fix fails
-✅ Auto-Resolved   → Status: FIXED in 2 seconds, 0 retries
-```
+</div>
 
 ---
 
-## 🏗️ Architecture
+# 📖 Overview
 
-```
-Incoming Error
-      │
-      ▼
-┌─────────────┐     ┌─────────────────┐
-│ Triage Agent│────▶│ Qdrant VectorDB │
-│             │◀────│ (RAG Context)   │
-└──────┬──────┘     └─────────────────┘
-       │
-       ▼
-┌─────────────┐     ┌─────────────────┐
-│ Coder Agent │────▶│ Groq LLaMA 3.3  │
-│             │◀────│ (Code Fix)      │
-└──────┬──────┘     └─────────────────┘
-       │
-       ▼
-┌─────────────┐     ┌─────────────────┐
-│ Tester Agent│────▶│ Local Sandbox   │
-│             │◀────│ (subprocess)    │
-└──────┬──────┘     └─────────────────┘
-       │
-       ▼
-  ┌────┴────┐
-  │ Router  │──── PASS ──▶ ✅ FIXED
-  │         │──── FAIL ──▶ 🔁 Retry (max 3)
-  └─────────┘──── MAX  ──▶ ❌ Escalate
-```
+Aegis AI is a production-grade autonomous incident management platform designed to assist enterprises in detecting, analyzing, prioritizing, and resolving incidents using cutting-edge Artificial Intelligence.
+
+Unlike traditional monitoring systems that only generate alerts, Aegis AI performs intelligent reasoning using coordinated AI agents, Retrieval-Augmented Generation (RAG), and Large Language Models to recommend actionable solutions in real time.
+
+The project demonstrates practical applications of Agentic AI, enterprise automation, and AI-assisted decision-making.
 
 ---
 
-## 🧰 Tech Stack
+# ✨ Key Features
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Agent Orchestration | LangGraph | Stateful multi-agent workflow |
-| LLM | Groq Llama 3.3 70B | Code fix generation |
-| Vector Database | Qdrant (in-memory) | RAG — historical incident memory |
-| Code Execution | Python subprocess | Secure sandboxed patch testing |
-| State Management | TypedDict + operator.add | Shared agent memory with audit trail |
-| Config | python-dotenv | Secure API key management |
+- 🤖 Autonomous Multi-Agent Architecture
+- 🧠 Retrieval-Augmented Generation (RAG)
+- 📚 Vector Database Integration
+- ⚡ Intelligent Incident Classification
+- 🚨 Automated Severity Assessment
+- 📝 AI-generated Resolution Suggestions
+- 🔍 Enterprise Knowledge Base Search
+- 🌐 Production-ready REST API
+- ☁️ Cloud Deployment on Render
 
 ---
 
-## 📁 Project Structure
+# 🏗️ System Architecture
 
-```
-aegis-ai/
-├── state.py          # Shared state schema (TypedDict) — agent memory blueprint
-├── rag_storage.py    # Qdrant vector DB — stores and retrieves past incidents
-├── nodes.py          # Three agent nodes: Triage, Coder, Tester
-├── main.py           # LangGraph assembly — self-healing retry loop
-├── .env              # API keys (never committed)
-└── .gitignore        # Protects secrets and ignores build artifacts
+```text
+                User Request
+                     │
+                     ▼
+              Flask REST API
+                     │
+                     ▼
+          Incident Processing Engine
+                     │
+      ┌──────────────┼──────────────┐
+      ▼              ▼              ▼
+Classifier      Knowledge Agent   Resolution Agent
+      │              │              │
+      └──────────────┼──────────────┘
+                     ▼
+             LangGraph Orchestrator
+                     │
+                     ▼
+         Retrieval-Augmented Generation
+                     │
+                     ▼
+             Vector Database Search
+                     │
+                     ▼
+             Groq LLaMA 3.3 70B
+                     │
+                     ▼
+            AI Incident Response
 ```
 
 ---
 
-## ⚙️ How It Works
+# 🤖 AI Workflow
 
-### 1. State (`state.py`)
-A `TypedDict` acts as the shared memory between all agents. Every agent reads from it and writes to it. Fields include `error_log`, `historical_context`, `current_patch`, `test_results`, `retry_count`, and an append-only `patch_history` for full audit trails.
+```
+Incident Report
 
-### 2. RAG Memory (`rag_storage.py`)
-Uses Qdrant's in-memory vector database to store past incidents as embeddings. When a new error arrives, it retrieves the most similar past incidents and their successful fixes, giving the Coder Agent relevant historical context instead of guessing blind.
+↓
 
-### 3. Agent Nodes (`nodes.py`)
-- **Triage Agent** — queries the RAG database for similar past incidents
-- **Coder Agent** — calls the LLM with the error + RAG context to generate a fix
-- **Tester Agent** — runs the fix in a sandboxed subprocess and records the result
+AI Classification
 
-### 4. Graph (`main.py`)
-LangGraph wires the agents into a directed graph with a conditional router after the Tester Agent. If the patch passes, the graph ends with `status: fixed`. If it fails, the graph loops back to the Coder Agent with the failed attempt in context. After 3 retries, it escalates.
+↓
+
+Severity Prediction
+
+↓
+
+Knowledge Retrieval
+
+↓
+
+LLM Reasoning
+
+↓
+
+Resolution Generation
+
+↓
+
+Recommended Action Plan
+```
 
 ---
 
-## 🚀 Getting Started
+# 🛠️ Tech Stack
 
-### Prerequisites
-- Python 3.11+
-- A free [Groq API key](https://console.groq.com)
+## Programming
 
-### Installation
+- Python
+
+---
+
+## AI & LLM
+
+- LangGraph
+- Groq API
+- LLaMA 3.3 70B
+- Prompt Engineering
+- Generative AI
+- Agentic AI
+
+---
+
+## AI Architecture
+
+- Multi-Agent Systems
+- Retrieval-Augmented Generation (RAG)
+- Semantic Search
+- Vector Database
+
+---
+
+## Backend
+
+- Flask
+- REST APIs
+
+---
+
+## Deployment
+
+- Render
+
+---
+
+# 📂 Project Structure
+
+```
+Aegis-AI
+│
+├── app.py
+├── requirements.txt
+├── routes/
+├── agents/
+├── rag/
+├── vector_store/
+├── prompts/
+├── utils/
+├── static/
+├── templates/
+└── README.md
+```
+
+---
+
+# 🚀 Installation
+
+Clone repository
 
 ```bash
-# Clone the repo
-git clone https://github.com/YOUR_USERNAME/aegis-ai.git
+git clone https://github.com/wyldex3ml-pro/aegis-ai.git
+```
+
+Move into project
+
+```bash
 cd aegis-ai
-
-# Create virtual environment
-python -m venv .venv
-
-# Activate (Mac/Linux)
-source .venv/bin/activate
-
-# Activate (Windows)
-.venv\Scripts\activate
-
-# Install dependencies
-pip install langgraph langchain-core qdrant-client python-dotenv langchain-openai groq
 ```
 
-### Configuration
-
-Create a `.env` file in the root directory:
-
-```env
-GROQ_API_KEY=your_groq_api_key_here
-```
-
-### Run
+Install dependencies
 
 ```bash
-python main.py
+pip install -r requirements.txt
+```
+
+Run application
+
+```bash
+python app.py
 ```
 
 ---
 
-## 📊 Example Output
+# 🌐 Live Deployment
+
+Backend API
+
+https://aegis-ai-cr2u.onrender.com
+
+GitHub Repository
+
+https://github.com/wyldex3ml-pro/aegis-ai
+
+---
+
+# 💻 Example Workflow
 
 ```
-🔍 Triage Agent started.
-   RAG context retrieved — 2 similar incidents found.
+User submits incident
 
-💻 Coder Agent started. Retry #0
-   Patch generated (699 chars).
+↓
 
-🧪 Tester Agent started.
-   Sandbox result: EXIT_CODE: 0 | Total: 30.0
+AI classifies incident
 
-✅ INCIDENT RESOLVED AUTOMATICALLY
-   Status       : FIXED
-   Retries used : 0 / 3
-   Patches tried: 1
+↓
+
+Vector DB retrieves similar incidents
+
+↓
+
+LLM analyzes context
+
+↓
+
+Resolution generated
+
+↓
+
+Enterprise receives recommended action plan
 ```
 
 ---
 
-## 🔮 Roadmap
+# 📈 Skills Demonstrated
 
-- [ ] Real semantic embeddings via `sentence-transformers`
-- [ ] GitHub webhook integration for automatic error ingestion
-- [ ] Slack/PagerDuty alerting on escalation
-- [ ] Web dashboard for incident history
-- [ ] E2B cloud sandbox integration
-- [ ] Support for JavaScript / TypeScript codebases
-
----
-
-## 🤝 Contributing
-
-Pull requests are welcome. For major changes, please open an issue first.
-
----
-
-## 📄 License
-
-MIT License — free to use, modify, and distribute.
+- Python Development
+- Artificial Intelligence
+- Generative AI
+- Agentic AI
+- Large Language Models
+- Prompt Engineering
+- LangGraph
+- Multi-Agent Systems
+- Retrieval-Augmented Generation
+- Semantic Search
+- Vector Databases
+- REST APIs
+- Flask
+- Cloud Deployment
+- Software Architecture
 
 ---
 
-## 👨‍💻 Author
+# 🎯 Challenges Solved
 
-Built as a portfolio project demonstrating production-grade Multi-Agent System design using LangGraph, RAG, and autonomous code repair.
+✅ Autonomous AI decision making
+
+✅ Multi-agent orchestration
+
+✅ Enterprise incident automation
+
+✅ Context-aware reasoning
+
+✅ Intelligent document retrieval
+
+✅ Production deployment
+
+---
+
+# 📊 Why this Project?
+
+Traditional monitoring tools generate alerts.
+
+Aegis AI goes beyond monitoring by reasoning about incidents, retrieving enterprise knowledge, and suggesting intelligent resolutions autonomously.
+
+This project demonstrates how Agentic AI can reduce response time and improve operational efficiency in enterprise environments.
+
+---
+
+# 🚀 Future Improvements
+
+- Docker Support
+- Kubernetes Deployment
+- Authentication & Authorization
+- LangSmith Observability
+- AWS Deployment
+- Azure OpenAI Integration
+- Pinecone Support
+- ChromaDB Support
+- Human-in-the-loop Approval
+- Monitoring Dashboard
+
+---
+
+# 📸 Screenshots
+
+> Add screenshots of:
+
+- Home Page
+- Incident Dashboard
+- AI Response
+- API Testing
+- Render Deployment
+- Architecture Diagram
+
+---
+
+# 🤝 Contributing
+
+Contributions are welcome!
+
+If you have suggestions for improving Aegis AI, feel free to fork the repository and submit a pull request.
+
+---
+
+# 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+# 👨‍💻 Author
+
+## aditya sarap
+
+AI Engineer | Generative AI | Agentic AI | LLMs | RAG
+
+📧 Email
+
+🔗 LinkedIn
+
+💻 GitHub
+
+🌐 Portfolio
+
+---
+
+<div align="center">
+
+### ⭐ If you found this project useful, consider giving it a Star!
+
+</div>
